@@ -141,7 +141,7 @@ const FOOD_CATEGORIES = {
   TAIWANESE: {
     id: 'TAIWANESE',
     name: '台式小吃',
-    icon: '🇹🇼',
+    icon: '🧆',
     description: '傳統台灣味',
     mealTypes: ['breakfast', 'lunch', 'dinner']
   },
