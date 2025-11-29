@@ -21,7 +21,7 @@ const TEMPERATURE_WEIGHTS = {
   BREAD:        { FREEZING: 0.9, COLD: 1.0, COOL: 1.0, WARM: 1.0, HOT: 0.9, SCORCHING: 0.8 },
   DIMSUM:       { FREEZING: 1.3, COLD: 1.2, COOL: 1.1, WARM: 1.0, HOT: 0.9, SCORCHING: 0.8 },
   SWEET_SOUP:   { FREEZING: 1.5, COLD: 1.3, COOL: 1.0, WARM: 0.8, HOT: 0.6, SCORCHING: 0.5 },
-  ICE_DESSERT:  { FREEZING: 0.1, COLD: 0.3, COOL: 0.6, WARM: 1.0, HOT: 1.6, SCORCHING: 2.0 },
+  ICE_DESSERT:  { FREEZING: 0.0, COLD: 0.1, COOL: 0.6, WARM: 1.0, HOT: 1.6, SCORCHING: 2.0 },
   COLD_DRINK:   { FREEZING: 0.3, COLD: 0.5, COOL: 0.8, WARM: 1.2, HOT: 1.6, SCORCHING: 1.8 },
   HOT_DRINK:    { FREEZING: 1.8, COLD: 1.5, COOL: 1.2, WARM: 0.9, HOT: 0.5, SCORCHING: 0.3 },
   TAIWANESE:    { FREEZING: 1.1, COLD: 1.1, COOL: 1.0, WARM: 1.0, HOT: 1.0, SCORCHING: 0.9 },
@@ -50,15 +50,15 @@ const WEATHER_WEIGHTS = {
   BREAD:        { SUNNY: 1.0, CLOUDY: 1.0, RAINY: 1.0, STORMY: 1.0 },
   DIMSUM:       { SUNNY: 0.9, CLOUDY: 1.0, RAINY: 1.1, STORMY: 1.2 },
   SWEET_SOUP:   { SUNNY: 0.8, CLOUDY: 1.0, RAINY: 1.2, STORMY: 1.3 },
-  ICE_DESSERT:  { SUNNY: 1.4, CLOUDY: 1.0, RAINY: 0.5, STORMY: 0.3 },
-  COLD_DRINK:   { SUNNY: 1.3, CLOUDY: 1.0, RAINY: 0.7, STORMY: 0.5 },
+  ICE_DESSERT:  { SUNNY: 0.4, CLOUDY: 0.3, RAINY: 0.2, STORMY: 0.1 },
+  COLD_DRINK:   { SUNNY: 0.8, CLOUDY: 0.7, RAINY: 0.6, STORMY: 0.5 },
   HOT_DRINK:    { SUNNY: 0.8, CLOUDY: 1.0, RAINY: 1.3, STORMY: 1.5 },
   TAIWANESE:    { SUNNY: 1.0, CLOUDY: 1.0, RAINY: 1.1, STORMY: 1.1 },
   JAPANESE:     { SUNNY: 1.0, CLOUDY: 1.0, RAINY: 1.0, STORMY: 1.0 },
   WESTERN:      { SUNNY: 1.0, CLOUDY: 1.0, RAINY: 1.0, STORMY: 1.0 },
   KOREAN:       { SUNNY: 0.9, CLOUDY: 1.0, RAINY: 1.2, STORMY: 1.3 },
   SEAFOOD:      { SUNNY: 1.1, CLOUDY: 1.0, RAINY: 0.9, STORMY: 0.8 },
-  VEGETARIAN:   { SUNNY: 1.1, CLOUDY: 1.0, RAINY: 0.9, STORMY: 0.9 }
+  VEGETARIAN:   { SUNNY: 0.2, CLOUDY: 0.2, RAINY: 0.2, STORMY: 0.2 }
 };
 
 // ===== 餐別權重調整 =====
@@ -66,23 +66,23 @@ const MEAL_TYPE_WEIGHTS = {
   breakfast: {
     BREAD: 1.5,
     SANDWICH: 1.5,
-    CONGEE: 1.4,
-    DIMSUM: 1.4,
-    HOT_DRINK: 1.3,
-    NOODLES_HOT: 1.2,
-    TAIWANESE: 1.2,
-    RICE_COLD: 1.3,
+    CONGEE: 1.0,
+    DIMSUM: 1.3,
+    HOT_DRINK: 0.0,
+    NOODLES_HOT: 0.0,
+    TAIWANESE: 0.0,
+    RICE_COLD: 0.0,
     // 早餐不適合的
     HOT_POT: 0.0,
     BBQ_GRILL: 0.0,
-    STIR_FRY: 0.3,
-    ICE_DESSERT: 0.5,
-    SEAFOOD: 0.4,
-    KOREAN: 0.5,
-    SWEET_SOUP: 0.4,
-    FRIED: 0.6,
-    JAPANESE: 0.7,
-    WESTERN: 1.2  // 早午餐
+    STIR_FRY: 0.0,
+    ICE_DESSERT: 0.0,
+    SEAFOOD: 0.0,
+    KOREAN: 0.0,
+    SWEET_SOUP: 0.0,
+    FRIED: 0.0,
+    JAPANESE: 0.0,
+    WESTERN: 0.0  // 早午餐
   },
   lunch: {
     RICE_HOT: 1.3,
@@ -111,8 +111,8 @@ const MEAL_TYPE_WEIGHTS = {
     TAIWANESE: 1.1,
     SWEET_SOUP: 1.0,
     // 晚餐較少的
-    BREAD: 0.5,
-    SANDWICH: 0.6,
+    BREAD: 0.1,
+    SANDWICH: 0.5,
     CONGEE: 0.9,
     RICE_COLD: 0.6
   }
@@ -182,9 +182,10 @@ function calculateCategoryWeight(categoryId, temperature, weather, mealType) {
     weight *= WEATHER_WEIGHTS[categoryId][weatherCondition] || 1.0;
   }
 
-  // 餐別權重
-  if (MEAL_TYPE_WEIGHTS[mealType] && MEAL_TYPE_WEIGHTS[mealType][categoryId]) {
-    weight *= MEAL_TYPE_WEIGHTS[mealType][categoryId];
+  // 餐別權重（沒設定的類別預設為 0，不會被推薦）
+  if (MEAL_TYPE_WEIGHTS[mealType]) {
+    const mealWeight = MEAL_TYPE_WEIGHTS[mealType][categoryId];
+    weight *= (mealWeight !== undefined) ? mealWeight : 0;
   }
 
   // 加入隨機因子 (0.85 - 1.15)
